@@ -1,35 +1,145 @@
 #hero {
-  margin: 0;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+  min-height: calc(100vh - 80px);
+}
+
+.hero-content {
+  color: white;
+}
+
+.hero-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 1.5rem;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.hero-highlight {
+  background: linear-gradient(120deg, #ffd700 0%, #ff8c00 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: inline-block;
+}
+
+.hero-description {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+  opacity: 0.95;
+  line-height: 1.8;
+  animation: fadeInUp 0.8s ease-out 0.2s backwards;
+}
+
+.hero-buttons {
   display: flex;
-  flex-direction: column;
+  gap: 1rem;
+  flex-wrap: wrap;
+  animation: fadeInUp 0.8s ease-out 0.4s backwards;
+}
+
+.hero-image {
+  display: flex;
   justify-content: center;
   align-items: center;
+  animation: fadeIn 1s ease-out 0.6s backwards;
 }
 
-#links {
-  width: 400px;
-  text-align: left;
-  font-size: x-large;
-  color: white;
-  display: flex;
-  flex-direction: column;
+.book-stack {
+  position: relative;
+  width: 300px;
+  height: 300px;
 }
 
-#links a {
-  color: white;
-  text-decoration: none;
-  margin-top: 20px;
-  margin: 10px 0px;
-  border: white 1px solid;
-  border-radius: 5px;
-  padding: 10px;
-}
-
-#links a:hover {
-  background-color: #1f1f1f;
+.book {
+  position: absolute;
+  font-size: 8rem;
+  transition: transform 0.3s;
   cursor: pointer;
+  animation: float 3s ease-in-out infinite;
 }
 
-#header {
-  max-width: 1200px;
+.book:hover {
+  transform: scale(1.1) !important;
+}
+
+.book-1 {
+  top: 0;
+  left: 50px;
+  transform: rotate(-10deg);
+  animation-delay: 0s;
+}
+
+.book-2 {
+  top: 80px;
+  left: 100px;
+  transform: rotate(5deg);
+  animation-delay: 0.5s;
+}
+
+.book-3 {
+  top: 40px;
+  left: 150px;
+  transform: rotate(15deg);
+  animation-delay: 1s;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@media (max-width: 768px) {
+  #hero {
+    grid-template-columns: 1fr;
+    padding: 2rem 1rem;
+  }
+
+  .hero-title {
+    font-size: 2.5rem;
+  }
+
+  .hero-description {
+    font-size: 1rem;
+  }
+
+  .book-stack {
+    width: 200px;
+    height: 200px;
+  }
+
+  .book {
+    font-size: 5rem;
+  }
 }
