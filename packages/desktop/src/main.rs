@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 use hikmah_core::library;
-use ui::general_component::file_browser::FileBrowser;
-use ui::general_component::library_view::LibraryView;
+use ui::component::file_browser::FileBrowser;
+use ui::component::library_view::LibraryView;
 use ui::MAIN_CSS;
 
 fn main() {

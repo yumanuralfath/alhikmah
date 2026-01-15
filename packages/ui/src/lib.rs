@@ -1,6 +1,7 @@
 use dioxus::prelude::*;
 
-pub mod general_component;
+pub mod android;
+pub mod component;
 pub mod web;
 
 pub const GLOBAL_CSS: Asset = asset!("/assets/styling/global.css");

@@ -2199,6 +2199,8 @@ dependencies = [
  "chrono",
  "dioxus",
  "dirs",
+ "jni",
+ "ndk-context",
  "serde",
  "serde_json",
  "tracing",
@@ -2906,8 +2908,6 @@ dependencies = [
  "dioxus",
  "dioxus-logger",
  "hikmah_core",
- "jni",
- "ndk-context",
  "ui",
 ]
 
