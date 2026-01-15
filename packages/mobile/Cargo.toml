@@ -6,8 +6,11 @@ edition = "2021"
 [dependencies]
 dioxus = { workspace = true, features = ["router"] }
 ui = { workspace = true }
+hikmah_core = { workspace = true }
+dioxus-logger.workspace = true
+jni = "0.21.1"
+ndk-context = "0.1.1"
 
 [features]
 default = ["mobile"]
 mobile = ["dioxus/mobile"]
-

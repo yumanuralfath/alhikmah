@@ -1,20 +1,28 @@
 use dioxus::prelude::*;
-use ui::{Features, Footer, Hero, Navbar, GLOBAL_CSS};
+use hikmah_core::library;
+use ui::general_component::file_browser::FileBrowser;
+use ui::general_component::library_view::LibraryView;
+use ui::MAIN_CSS;
 
 fn main() {
+    dioxus_logger::initialize_default();
     dioxus::launch(App);
 }
 
 #[component]
-pub fn App() -> Element {
+fn App() -> Element {
+    let library = use_signal(library::Library::new);
+
     rsx! {
-         document::Link { rel: "stylesheet", href: GLOBAL_CSS }
-         div {
-             class: "app-container",
-             Navbar {  }
-             Hero {  }
-             Features {  }
-             Footer {  }
-         }
+        link {
+            rel: "stylesheet",
+            href: MAIN_CSS
+        }
+
+        if library.read().browsing_mode {
+            FileBrowser { library }
+        } else {
+            LibraryView { library }
+        }
     }
 }

@@ -1,13 +1,12 @@
 [package]
-name = "core"
+name = "hikmah_core"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 dioxus = { workspace = true }
-dioxus-logger = "0.7.2"
+tracing.workspace = true
 dirs = "6.0.0"
-log = "0.4.29"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.149"
 uuid = { version = "1.8", features = ["v4"] }

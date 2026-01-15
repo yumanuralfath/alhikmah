@@ -5,3 +5,5 @@ edition = "2021"
 
 [dependencies]
 dioxus = { workspace = true }
+hikmah_core = { workspace = true }
+tracing.workspace = true

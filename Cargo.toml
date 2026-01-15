@@ -2,7 +2,7 @@
 resolver = "2"
 members = [
   "packages/ui",
-  "packages/core",
+  "packages/hikmah_core",
   "packages/web",
   "packages/desktop",
   "packages/mobile",
@@ -10,7 +10,9 @@ members = [
 
 [workspace.dependencies]
 dioxus = { version = "0.7.1" }
+dioxus-logger = "0.7.2"
+tracing = "0.1.44"
 
 # workspace
 ui = { path = "packages/ui" }
-core = { path = "packages/core" }
+hikmah_core = { path = "packages/hikmah_core" }

@@ -23,7 +23,7 @@ impl Library {
         };
 
         if let Err(e) = lib.load_library() {
-            log::error!("Failed to load library: {}", e);
+            tracing::error!("Failed to load library: {}", e);
         }
 
         lib
@@ -76,7 +76,7 @@ impl Library {
     }
 
     pub fn reload_file_list(&mut self) {
-        log::info!("Loading files from: {:?}", self.current_path);
+        tracing::info!("Loading files from: {:?}", self.current_path);
 
         let paths = match fs::read_dir(&self.current_path) {
             Ok(p) => p,
@@ -110,7 +110,7 @@ impl Library {
                 _ => a.name.cmp(&b.name),
             });
 
-        log::info!("Loaded {} items", self.file_list.len());
+        tracing::info!("Loaded {} items", self.file_list.len());
     }
 
     fn is_ebook_file(path: &Path) -> bool {
@@ -178,7 +178,7 @@ impl Library {
         self.books.push(metadata);
         self.save_library()?;
 
-        log::info!("Book added successfully");
+        tracing::info!("Book added successfully");
         Ok(())
     }
 

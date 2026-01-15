@@ -562,20 +562,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "core"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "dioxus",
- "dioxus-logger",
- "dirs",
- "log",
- "serde",
- "serde_json",
- "uuid",
-]
-
-[[package]]
 name = "core-foundation"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -791,6 +777,8 @@ name = "desktop"
 version = "0.1.0"
 dependencies = [
  "dioxus",
+ "dioxus-logger",
+ "hikmah_core",
  "ui",
 ]
 
@@ -2205,6 +2193,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 
 [[package]]
+name = "hikmah_core"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "dioxus",
+ "dirs",
+ "serde",
+ "serde_json",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "html5ever"
 version = "0.29.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2903,6 +2904,10 @@ name = "mobile"
 version = "0.1.0"
 dependencies = [
  "dioxus",
+ "dioxus-logger",
+ "hikmah_core",
+ "jni",
+ "ndk-context",
  "ui",
 ]
 
@@ -4980,6 +4985,8 @@ name = "ui"
 version = "0.1.0"
 dependencies = [
  "dioxus",
+ "hikmah_core",
+ "tracing",
 ]
 
 [[package]]

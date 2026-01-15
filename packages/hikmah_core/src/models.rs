@@ -31,7 +31,7 @@ impl std::fmt::Display for BookFormat {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct FileEntry {
     pub name: String,
     pub path: std::path::PathBuf,
