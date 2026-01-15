@@ -1,6 +1,5 @@
 use dioxus::prelude::*;
 
-pub mod android;
 pub mod component;
 pub mod web;
 

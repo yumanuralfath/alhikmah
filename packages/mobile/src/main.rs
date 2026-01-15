@@ -1,7 +1,6 @@
 use dioxus::prelude::*;
-use hikmah_core::android::library_android;
-use ui::android::file_browser_android::FileBrowser;
-use ui::android::library_view_android::LibraryView;
+use hikmah_core::library::Library;
+use ui::component::library_view::LibraryView;
 use ui::MAIN_CSS;
 
 fn main() {
@@ -11,7 +10,7 @@ fn main() {
 
 #[component]
 fn App() -> Element {
-    let library = use_signal(library_android::LibraryAndroid::new);
+    let library = use_signal(Library::new);
 
     rsx! {
         link {
@@ -19,10 +18,7 @@ fn App() -> Element {
             href: MAIN_CSS
         }
 
-        if library.read().browsing_mode {
-            FileBrowser { library }
-        } else {
-            LibraryView { library }
-        }
+        LibraryView{library}
     }
 }
+

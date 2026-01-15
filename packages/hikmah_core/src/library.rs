@@ -1,14 +1,10 @@
-use crate::models::{BookFormat, BookMetadata, FileEntry};
-use crate::storage::StorageManager;
-use std::fs;
-use std::path::{Path, PathBuf};
+use crate::file_picker::{detect_book_format, FileSelection};
+use crate::models::{BookFormat, BookMetadata};
+use tracing::{error, info};
 
 #[derive(Debug, Clone)]
 pub struct Library {
     pub books: Vec<BookMetadata>,
-    pub current_path: PathBuf,
-    pub browsing_mode: bool,
-    pub file_list: Vec<FileEntry>,
     pub err: Option<String>,
 }
 
@@ -16,228 +12,148 @@ impl Library {
     pub fn new() -> Self {
         let mut lib = Self {
             books: vec![],
-            current_path: PathBuf::from("."),
-            browsing_mode: false,
-            file_list: vec![],
             err: None,
         };
 
-        if let Err(e) = lib.load_library() {
-            tracing::error!("Failed to load library: {}", e);
+        // Load library dari localStorage/browser storage
+        if let Err(e) = lib.load_from_browser() {
+            error!("Failed to load library: {}", e);
         }
 
         lib
     }
 
-    // ===== PERSISTENCE =====
+    // ===== BROWSER STORAGE (IndexedDB/localStorage) =====
 
-    pub fn load_library(&mut self) -> Result<(), String> {
-        let library_path = StorageManager::get_library_path()?;
-
-        if !library_path.exists() {
-            if let Some(parent) = library_path.parent() {
-                fs::create_dir_all(parent)
-                    .map_err(|e| format!("Failed to create directory: {}", e))?;
-            }
-            return Ok(());
-        }
-
-        let content = fs::read_to_string(&library_path)
-            .map_err(|e| format!("Failed to read library: {}", e))?;
-
-        let books: Vec<BookMetadata> = serde_json::from_str(&content)
-            .map_err(|e| format!("Failed to parse library: {}", e))?;
-
-        self.books = books;
+    fn load_from_browser(&mut self) -> Result<(), String> {
+        // Try to load from browser storage
+        // For now, just start empty - browser storage akan di-implement via JavaScript
+        info!("Library initialized (browser storage not yet implemented)");
         Ok(())
     }
 
-    pub fn save_library(&self) -> Result<(), String> {
-        let library_path = StorageManager::get_library_path()?;
-
-        if let Some(parent) = library_path.parent() {
-            fs::create_dir_all(parent).map_err(|e| format!("Failed to create directory: {}", e))?;
-        }
-
-        let content = serde_json::to_string_pretty(&self.books)
-            .map_err(|e| format!("Failed to serialize: {}", e))?;
-
-        fs::write(&library_path, content).map_err(|e| format!("Failed to write library: {}", e))?;
-
+    fn save_to_browser(&self) -> Result<(), String> {
+        // Save to browser storage
+        // Will be implemented via JavaScript eval
+        info!("Saving library to browser storage");
         Ok(())
-    }
-
-    // ===== FILE BROWSING =====
-
-    pub fn start_browsing(&mut self) {
-        self.browsing_mode = true;
-        self.current_path = StorageManager::get_default_browse_path();
-        self.reload_file_list();
-    }
-
-    pub fn reload_file_list(&mut self) {
-        tracing::info!("Loading files from: {:?}", self.current_path);
-
-        let paths = match fs::read_dir(&self.current_path) {
-            Ok(p) => p,
-            Err(e) => {
-                self.err = Some(format!("Cannot read directory: {}", e));
-                return;
-            }
-        };
-
-        self.file_list.clear();
-        self.err = None;
-
-        for entry in paths.flatten() {
-            let path = entry.path();
-            let name = entry.file_name().to_string_lossy().to_string();
-            let is_directory = path.is_dir();
-
-            if is_directory || Self::is_ebook_file(&path) {
-                self.file_list.push(FileEntry {
-                    name,
-                    path,
-                    is_directory,
-                });
-            }
-        }
-
-        self.file_list
-            .sort_by(|a, b| match (a.is_directory, b.is_directory) {
-                (true, false) => std::cmp::Ordering::Less,
-                (false, true) => std::cmp::Ordering::Greater,
-                _ => a.name.cmp(&b.name),
-            });
-
-        tracing::info!("Loaded {} items", self.file_list.len());
-    }
-
-    fn is_ebook_file(path: &Path) -> bool {
-        if let Some(ext) = path.extension() {
-            let ext = ext.to_string_lossy().to_lowercase();
-            matches!(ext.as_str(), "epub" | "pdf" | "txt")
-        } else {
-            false
-        }
-    }
-
-    pub fn go_up(&mut self) {
-        if let Some(parent) = self.current_path.parent() {
-            self.current_path = parent.to_path_buf();
-            self.reload_file_list();
-        }
-    }
-
-    pub fn enter_directory(&mut self, index: usize) {
-        if let Some(entry) = self.file_list.get(index) {
-            if entry.is_directory {
-                self.current_path = entry.path.clone();
-                self.reload_file_list();
-            }
-        }
-    }
-
-    pub fn select_file(&mut self, index: usize) {
-        if let Some(entry) = self.file_list.get(index) {
-            if !entry.is_directory {
-                if let Err(e) = self.add_book_from_path(entry.path.clone()) {
-                    self.err = Some(e);
-                } else {
-                    self.browsing_mode = false;
-                }
-            }
-        }
-    }
-
-    pub fn cancel_browsing(&mut self) {
-        self.browsing_mode = false;
-        self.file_list.clear();
     }
 
     // ===== BOOK MANAGEMENT =====
 
-    fn add_book_from_path(&mut self, source_path: PathBuf) -> Result<(), String> {
-        let storage_path = StorageManager::get_storage_path()?;
-        fs::create_dir_all(&storage_path)
-            .map_err(|e| format!("Failed to create storage: {}", e))?;
+    pub fn add_book_from_file(&mut self, file: FileSelection) -> Result<(), String> {
+        info!("Adding book: {} ({} bytes)", file.name, file.size);
 
-        let format = Self::detect_format(&source_path)?;
-
-        let file_ext = source_path
-            .extension()
-            .and_then(|s| s.to_str())
-            .unwrap_or("epub");
-        let unique_name = format!("{}.{}", uuid::Uuid::new_v4(), file_ext);
-        let dest_path = storage_path.join(&unique_name);
-
-        fs::copy(&source_path, &dest_path).map_err(|e| format!("Failed to copy file: {}", e))?;
-
-        let metadata = Self::parse_metadata(&dest_path, &unique_name, format)?;
-
-        self.books.push(metadata);
-        self.save_library()?;
-
-        tracing::info!("Book added successfully");
-        Ok(())
-    }
-
-    pub fn remove_book(&mut self, book_id: &str) -> Result<(), String> {
-        if let Some(book) = self.books.iter().find(|b| b.id == book_id) {
-            let file_path = PathBuf::from(&book.file_path);
-            if file_path.exists() {
-                fs::remove_file(&file_path).map_err(|e| format!("Failed to delete file: {}", e))?;
-            }
+        // Validate file size (max 50MB untuk avoid memory issues)
+        const MAX_SIZE: u64 = 50 * 1024 * 1024;
+        if file.size > MAX_SIZE {
+            return Err(format!(
+                "File too large: {} MB (max 50 MB)",
+                file.size / (1024 * 1024)
+            ));
         }
 
-        self.books.retain(|b| b.id != book_id);
-        self.save_library()?;
+        // Detect format
+        let format_str =
+            detect_book_format(&file.r#type, &file.name).ok_or("Unsupported file format")?;
 
-        Ok(())
-    }
+        let format = BookFormat::from_extension(&format_str).ok_or("Invalid book format")?;
 
-    fn detect_format(path: &Path) -> Result<BookFormat, String> {
-        let ext = path
-            .extension()
-            .and_then(|s| s.to_str())
-            .ok_or("No file extension")?
-            .to_lowercase();
-
-        match ext.as_str() {
-            "epub" => Ok(BookFormat::EPUB),
-            "pdf" => Ok(BookFormat::PDF),
-            "txt" => Ok(BookFormat::TXT),
-            _ => Err(format!("Unsupported format: {}", ext)),
-        }
-    }
-
-    fn parse_metadata(
-        path: &Path,
-        file_name: &str,
-        format: BookFormat,
-    ) -> Result<BookMetadata, String> {
-        let title = path
-            .file_stem()
-            .and_then(|s| s.to_str())
-            .unwrap_or("Unknown")
+        // Extract title from filename
+        let title = file
+            .name
+            .strip_suffix(&format!(".{}", format_str))
+            .unwrap_or(&file.name)
             .to_string();
 
-        Ok(BookMetadata {
+        // Check if book already exists
+        if self
+            .books
+            .iter()
+            .any(|b| b.file_name == file.name && b.size == file.size)
+        {
+            return Err("This book already exists in your library".to_string());
+        }
+
+        // Create metadata
+        let metadata = BookMetadata {
             id: uuid::Uuid::new_v4().to_string(),
             title,
             author: "Unknown Author".to_string(),
-            file_path: path.to_string_lossy().to_string(),
-            file_name: file_name.to_string(),
+            file_name: file.name,
             format,
+            size: file.size,
+            file_data: file.data, // Store base64 data directly
             cover_image: None,
             last_read_position: 0,
             total_pages: 0,
             added_date: chrono::Utc::now().to_rfc3339(),
-        })
+        };
+
+        self.books.push(metadata);
+        self.save_to_browser()?;
+
+        info!("Book added successfully!");
+        Ok(())
+    }
+
+    pub fn add_multiple_books(&mut self, files: Vec<FileSelection>) -> Vec<String> {
+        let mut errors = Vec::new();
+
+        for file in files {
+            let file_name = file.name.clone();
+            if let Err(e) = self.add_book_from_file(file) {
+                errors.push(format!("{}: {}", file_name, e));
+            }
+        }
+
+        errors
+    }
+
+    pub fn remove_book(&mut self, book_id: &str) -> Result<(), String> {
+        self.books.retain(|b| b.id != book_id);
+        self.save_to_browser()?;
+
+        info!("Book removed successfully");
+        Ok(())
+    }
+
+    pub fn update_reading_position(
+        &mut self,
+        book_id: &str,
+        position: usize,
+    ) -> Result<(), String> {
+        if let Some(book) = self.books.iter_mut().find(|b| b.id == book_id) {
+            book.last_read_position = position;
+            self.save_to_browser()?;
+        }
+        Ok(())
+    }
+
+    pub fn search_books(&self, query: &str) -> Vec<&BookMetadata> {
+        let query_lower = query.to_lowercase();
+        self.books
+            .iter()
+            .filter(|book| {
+                book.title.to_lowercase().contains(&query_lower)
+                    || book.author.to_lowercase().contains(&query_lower)
+            })
+            .collect()
+    }
+
+    pub fn get_book(&self, book_id: &str) -> Option<&BookMetadata> {
+        self.books.iter().find(|b| b.id == book_id)
     }
 
     pub fn clear_err(&mut self) {
         self.err = None;
+    }
+
+    pub fn clear_library(&mut self) -> Result<(), String> {
+        self.books.clear();
+        self.save_to_browser()?;
+        info!("Library cleared");
+        Ok(())
     }
 }
 

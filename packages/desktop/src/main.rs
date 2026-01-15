@@ -1,6 +1,5 @@
 use dioxus::prelude::*;
-use hikmah_core::library;
-use ui::component::file_browser::FileBrowser;
+use hikmah_core::library::Library;
 use ui::component::library_view::LibraryView;
 use ui::MAIN_CSS;
 
@@ -11,7 +10,7 @@ fn main() {
 
 #[component]
 fn App() -> Element {
-    let library = use_signal(library::Library::new);
+    let library = use_signal(Library::new);
 
     rsx! {
         link {
@@ -19,10 +18,6 @@ fn App() -> Element {
             href: MAIN_CSS
         }
 
-        if library.read().browsing_mode {
-            FileBrowser { library }
-        } else {
-            LibraryView { library }
-        }
+        LibraryView{library}
     }
 }

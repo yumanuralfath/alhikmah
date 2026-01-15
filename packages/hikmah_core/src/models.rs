@@ -5,9 +5,10 @@ pub struct BookMetadata {
     pub id: String,
     pub title: String,
     pub author: String,
-    pub file_path: String,
     pub file_name: String,
     pub format: BookFormat,
+    pub size: u64,
+    pub file_data: String, // base64 data URL
     pub cover_image: Option<String>,
     pub last_read_position: usize,
     pub total_pages: usize,
@@ -31,9 +32,21 @@ impl std::fmt::Display for BookFormat {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct FileEntry {
-    pub name: String,
-    pub path: std::path::PathBuf,
-    pub is_directory: bool,
+impl BookFormat {
+    pub fn from_extension(ext: &str) -> Option<Self> {
+        match ext.to_lowercase().as_str() {
+            "epub" => Some(BookFormat::EPUB),
+            "pdf" => Some(BookFormat::PDF),
+            "txt" => Some(BookFormat::TXT),
+            _ => None,
+        }
+    }
+
+    pub fn to_extension(&self) -> &str {
+        match self {
+            BookFormat::EPUB => "epub",
+            BookFormat::PDF => "pdf",
+            BookFormat::TXT => "txt",
+        }
+    }
 }
