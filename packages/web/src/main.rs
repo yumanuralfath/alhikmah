@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
-use ui::{Features, Footer, Hero, Navbar, GLOBAL_CSS};
-
+use ui::web::{Features, Footer, Hero, Navbar};
+use ui::GLOBAL_CSS;
 fn main() {
     dioxus::launch(App);
 }
