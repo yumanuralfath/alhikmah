@@ -21,4 +21,3 @@ fn App() -> Element {
         LibraryView{library}
     }
 }
-
